@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-// Report times
 #[derive(Clone)]
 pub struct Timer {
     pub start: Instant,
