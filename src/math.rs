@@ -11,8 +11,14 @@ where
     sum / (count as f32)
 }
 
+// (p * s) + t = p'
 pub fn transform_coordinates(translation: Vec3, scale: f32, position: Vec3) -> Vec3 {
     (position * scale) + translation
+}
+
+// (p' - t) / s = p'
+pub fn inv_transform_coordinates(translation: Vec3, scale: f32, position: Vec3) -> Vec3 {
+    (position - translation) / scale
 }
 
 pub fn intersection_in_sequence(elem_a: usize, elem_b: usize, sequence: &Vec<usize>) -> bool {
