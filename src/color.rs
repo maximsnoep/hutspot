@@ -19,6 +19,11 @@ pub const COLOR_SECONDARY_X: Color = Color::hsl((61. / 239.) * 360., 0.8, 0.7);
 pub const COLOR_SECONDARY_Y: Color = Color::hsl((23. / 239.) * 360., 0.9, 0.7);
 pub const COLOR_SECONDARY_Z: Color = Color::hsl((187. / 239.) * 360., 0.6, 0.7);
 
+// others
+pub const COLOR_SECONDARY_X_LIGHT: Color = Color::hsl((61. / 239.) * 360., 0.8, 0.9);
+pub const COLOR_SECONDARY_Y_LIGHT: Color = Color::hsl((23. / 239.) * 360., 0.9, 0.9);
+pub const COLOR_SECONDARY_Z_LIGHT: Color = Color::hsl((187. / 239.) * 360., 0.6, 0.9);
+
 // Parula colormap
 // 53, 42, 134
 pub const PARULA_1: Color = Color::rgb(35. / 255., 42. / 255., 134. / 255.);
