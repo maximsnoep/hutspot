@@ -60,3 +60,28 @@ pub fn convert_3d_to_2d(point: Vec3, reference: Vec3) -> Vec2 {
     let alpha = point.angle_between(reference);
     Vec2::new(point.length() * alpha.cos(), point.length() * alpha.sin())
 }
+
+// Draw objects by returning a list of lines to render
+pub fn draw_vertex(p: Vec3, n: Vec3) -> Vec<(Vec3, Vec3)> {
+    vec![(p, p + n)]
+}
+
+pub fn draw_line(p1: Vec3, p2: Vec3) -> Vec<(Vec3, Vec3)> {
+    vec![(p1, p2)]
+}
+
+pub fn draw_triangle(p1: Vec3, p2: Vec3, p3: Vec3) -> Vec<(Vec3, Vec3)> {
+    vec![(p1, p2), (p2, p3), (p3, p1)]
+}
+
+pub fn draw_quad(p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3) -> Vec<(Vec3, Vec3)> {
+    vec![(p1, p2), (p2, p3), (p3, p4), (p4, p1)]
+}
+
+pub fn draw_polygon(vertices: Vec<Vec3>) -> Vec<(Vec3, Vec3)> {
+    let mut lines = Vec::new();
+    for i in 0..vertices.len() {
+        lines.push((vertices[i], vertices[(i + 1) % vertices.len()]));
+    }
+    lines
+}
