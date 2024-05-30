@@ -17,6 +17,14 @@ impl Timer {
     }
 
     pub fn report(&self, note: &str) {
-        log::info!("{:>12?}  >  {note}", self.start.elapsed());
+        println!("{:>12?}  >  {note}", self.start.elapsed());
     }
+}
+
+pub fn bench(function: impl Fn(), label: &str, iterations: usize) {
+    let t = Timer::new();
+    (0..iterations).into_iter().for_each(|_| {
+        function();
+    });
+    t.report(label);
 }

@@ -38,8 +38,26 @@ pub fn set_intersection<T: std::cmp::PartialEq + Clone>(
     intesection
 }
 
+pub fn inside_triangle(p: Vec3, a: Vec3, b: Vec3, c: Vec3) -> bool {
+    let v0 = c - a;
+    let v1 = b - a;
+    let v2 = p - a;
+
+    let dot00 = v0.dot(v0);
+    let dot01 = v0.dot(v1);
+    let dot02 = v0.dot(v2);
+    let dot11 = v1.dot(v1);
+    let dot12 = v1.dot(v2);
+
+    let inv_denom = 1. / (dot00 * dot11 - dot01 * dot01);
+    let u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
+    let v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
+
+    u >= 0. && v >= 0. && u + v < 1.
+}
+
+// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 pub fn intersection_exact_in_2d(p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2) -> Option<Vec2> {
-    // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
     let t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x))
         / ((p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x));
 
