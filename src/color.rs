@@ -1,35 +1,37 @@
-pub const BLACK: [f32; 3] = [0.0, 0.0, 0.0];
-pub const WHITE: [f32; 3] = [1.0, 1.0, 1.0];
+type Color = [f32; 3];
+
+pub const BLACK: Color = [0.0, 0.0, 0.0];
+pub const WHITE: Color = [1.0, 1.0, 1.0];
 
 // CB dark red: rgb(226, 26, 27)
-pub const X_PRIMARY: [f32; 3] = [0.886, 0.102, 0.106];
+pub const X_PRIMARY: Color = [0.886, 0.102, 0.106];
 // CB dark blue: rgb(30, 119, 179)
-pub const Y_PRIMARY: [f32; 3] = [0.118, 0.467, 0.702];
+pub const Y_PRIMARY: Color = [0.118, 0.467, 0.702];
 // adapted CB yellow:
-pub const Z_PRIMARY: [f32; 3] = [1.000, 1.000, 0.600];
+pub const Z_PRIMARY: Color = [1.000, 1.000, 0.600];
 
 // CB light red: rgb(250, 153, 153)
-pub const X_SECONDARY: [f32; 3] = [0.980, 0.600, 0.600];
+pub const X_SECONDARY: Color = [0.980, 0.600, 0.600];
 // CB light blue: rgb(166, 205, 226)
-pub const Y_SECONDARY: [f32; 3] = [0.651, 0.804, 0.886];
+pub const Y_SECONDARY: Color = [0.651, 0.804, 0.886];
 // adapted CB yellow
-pub const Z_SECONDARY: [f32; 3] = [1.000, 1.000, 0.800];
+pub const Z_SECONDARY: Color = [1.000, 1.000, 0.800];
 
 // others
 // green
-pub const YZ_PRIMARY: [f32; 3] = [0.686, 0.941, 0.459];
+pub const YZ_PRIMARY: Color = [0.686, 0.941, 0.459];
 // orange
-pub const XZ_PRIMARY: [f32; 3] = [0.969, 0.824, 0.431];
+pub const XZ_PRIMARY: Color = [0.969, 0.824, 0.431];
 // purple
-pub const XY_PRIMARY: [f32; 3] = [0.769, 0.522, 0.878];
+pub const XY_PRIMARY: Color = [0.769, 0.522, 0.878];
 
 // others
 // green lighter
-pub const YZ_SECONDARY: [f32; 3] = [0.894, 0.980, 0.820];
+pub const YZ_SECONDARY: Color = [0.894, 0.980, 0.820];
 // orange lighter
-pub const XZ_SECONDARY: [f32; 3] = [0.988, 0.914, 0.812];
+pub const XZ_SECONDARY: Color = [0.988, 0.914, 0.812];
 // purple lighter
-pub const XY_SECONDARY: [f32; 3] = [0.961, 0.839, 0.961];
+pub const XY_SECONDARY: Color = [0.961, 0.839, 0.961];
 
 // Magma: https://github.com/BIDS/colormap/blob/master/option_a.py
 pub const MAGMA: [[f64; 3]; 256] = [
@@ -292,7 +294,7 @@ pub const MAGMA: [[f64; 3]; 256] = [
 ];
 
 // Parula: https://github.com/BIDS/colormap/blob/master/parula.py
-pub const PARULA: [[f32; 3]; 64] = [
+pub const PARULA: [Color; 64] = [
     [0.2081, 0.1663, 0.5292],
     [0.2116, 0.1898, 0.5777],
     [0.2123, 0.2138, 0.6270],
@@ -361,7 +363,7 @@ pub const PARULA: [[f32; 3]; 64] = [
 
 // Map a value between 0.0 to 1.0 to the given color scale.
 #[must_use]
-pub fn map(value: f32, colors: &[[f32; 3]]) -> [f32; 3] {
+pub fn map(value: f32, colors: &[Color]) -> Color {
     colors
         .get((value * (colors.len() as f32)).floor() as usize)
         .unwrap()
