@@ -6,8 +6,9 @@ pub struct Timer {
 }
 
 impl Timer {
-    pub fn new() -> Timer {
-        Timer {
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
             start: Instant::now(),
         }
     }
@@ -21,9 +22,15 @@ impl Timer {
     }
 }
 
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub fn bench(function: impl Fn(), label: &str, iterations: usize) {
     let t = Timer::new();
-    (0..iterations).into_iter().for_each(|_| {
+    (0..iterations).for_each(|_| {
         function();
     });
     t.report(label);
