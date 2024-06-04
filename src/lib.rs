@@ -1,20 +1,23 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
 #![allow(clippy::missing_panics_doc, clippy::missing_errors_doc)]
 pub mod color;
+pub mod consts;
+pub mod geom;
+pub mod graph;
 pub mod math;
 pub mod timer;
 
 #[cfg(test)]
 mod tests {
 
-    use crate::math::inside_triangle;
-    use crate::math::intersection_in_2d;
-    use crate::math::intersection_in_3d;
-    use crate::math::IntersectionType::Endpoint;
-    use crate::math::IntersectionType::Proper;
-    use crate::math::Vector2D;
-    use crate::math::Vector3D;
-    use crate::math::EPS;
+    use crate::consts::EPS;
+    use crate::geom::calculate_2d_lineseg_intersection;
+    use crate::geom::calculate_3d_lineseg_intersection;
+    use crate::geom::is_point_inside_triangle;
+    use crate::geom::IntersectionType::Endpoint;
+    use crate::geom::IntersectionType::Proper;
+    use crate::geom::Vector2D;
+    use crate::geom::Vector3D;
     use approx::AbsDiffEq;
 
     #[test]
@@ -39,7 +42,7 @@ mod tests {
         ];
 
         for (point, triangle, expected) in tests {
-            let inside = inside_triangle(point, triangle);
+            let inside = is_point_inside_triangle(point, triangle);
             assert_eq!(
                 inside,
                 expected,
@@ -74,7 +77,7 @@ mod tests {
         ];
 
         for (a, b, c, d, expected) in tests {
-            let intersection = intersection_in_2d(a, b, c, d);
+            let intersection = calculate_2d_lineseg_intersection(a, b, c, d);
             assert!(
                 match (intersection, expected) {
                     (Some((a, _)), Some((b, _))) => a.abs_diff_eq(&b, EPS),
@@ -122,7 +125,7 @@ mod tests {
         ];
 
         for (a, b, c, d, expected) in tests {
-            let intersection = intersection_in_3d(a, b, c, d);
+            let intersection = calculate_3d_lineseg_intersection(a, b, c, d);
             assert!(
             match (intersection, expected) {
                 (Some((a, _)), Some((b, _))) => a.abs_diff_eq(&b, EPS),

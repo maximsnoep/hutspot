@@ -1,8 +1,12 @@
 [package]
-name = "potpoursi"
-version = "0.1.0"
+name = "hutspot"
+version = "0.0.1"
 edition = "2021"
+authors = ["Snoep <maxim@snoep.io>"]
 
 [dependencies]
 nalgebra = "0.32.5"
 approx = "0.5.1"
+pathfinding = "4.9.1"
+ordered-float = "4.2.0"
+itertools = "0.13.0"
