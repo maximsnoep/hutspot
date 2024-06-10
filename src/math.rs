@@ -3,15 +3,52 @@
 /// * `list` - An iterator over elements to average.
 /// # Returns
 /// * `T` - The average value.
+///
+/// # Example
+/// ```
+/// use hutspot::math::calculate_average_f32;
+/// let list = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+/// let average = calculate_average_f32(list.into_iter());
+/// assert_eq!(average, 3.0);
+/// ```
 #[must_use]
 #[inline]
-pub fn calculate_average<T, D>(list: impl Iterator<Item = T>) -> T
+pub fn calculate_average_f32<T>(list: impl Iterator<Item = T>) -> T
 where
-    T: Default + std::ops::Add<Output = T> + std::ops::Div<D, Output = T>,
-    D: Default + std::ops::Add<Output = D> + From<u8>,
+    T: Default + std::ops::Add<Output = T> + std::ops::Div<f32, Output = T> + std::iter::Sum<T>,
 {
-    let (sum, count): (T, D) = list.fold((T::default(), D::default()), |(sum, count), elem| {
-        (sum + elem, count + D::from(1))
+    let (sum, count) = list.fold((T::default(), 0.0), |(sum, count), elem| {
+        (sum + elem, count + 1.0)
+    });
+    sum / count
+}
+
+/// Calculates the average of a list of elements.
+/// # Arguments
+/// * `list` - An iterator over elements to average.
+/// # Returns
+/// * `T` - The average value.
+///
+/// # Example
+/// ```
+/// use hutspot::math::calculate_average_f64;
+/// let list = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+/// let average = calculate_average_f64(list.into_iter());
+/// assert_eq!(average, 3.0);
+///
+/// use hutspot::geom::Vector2D;
+/// let list = vec![Vector2D::new(1.0, 2.0), Vector2D::new(3.0, 4.0), Vector2D::new(5.0, 6.0)];
+/// let average = calculate_average_f64(list.into_iter());
+/// assert_eq!(average, Vector2D::new(3.0, 4.0));
+/// ```
+#[must_use]
+#[inline]
+pub fn calculate_average_f64<T>(list: impl Iterator<Item = T>) -> T
+where
+    T: Default + std::ops::Add<Output = T> + std::ops::Div<f64, Output = T> + std::iter::Sum<T>,
+{
+    let (sum, count) = list.fold((T::default(), 0.0), |(sum, count), elem| {
+        (sum + elem, count + 1.0)
     });
     sum / count
 }

@@ -1,40 +1,30 @@
-type Color = [f32; 3];
+pub type Color = [f32; 3];
 
+// My favorite colors. Normally I use the correspondence:
+// X -> Roodt
+// Y -> Blauw
+// Z -> Yello
+// YZ -> Green (Blauw + Yello)
+// XZ -> Orang (Roodt + Yello)
+// XY -> Purpl (Roodt + Blauw)
 pub const BLACK: Color = [0.0, 0.0, 0.0];
+pub const GRIJS: Color = [0.5, 0.5, 0.5];
 pub const WHITE: Color = [1.0, 1.0, 1.0];
+pub const ROODT: Color = [0.886, 0.102, 0.106];
+pub const ROODT_L: Color = [0.980, 0.600, 0.600];
+pub const BLAUW: Color = [0.118, 0.467, 0.702];
+pub const BLAUW_L: Color = [0.651, 0.804, 0.886];
+pub const YELLO: Color = [1.000, 1.000, 0.600];
+pub const YELLO_L: Color = [1.000, 1.000, 0.800];
+pub const GREEN: Color = [0.686, 0.941, 0.459];
+pub const GREEN_L: Color = [0.894, 0.980, 0.820];
+pub const ORANG: Color = [0.969, 0.824, 0.431];
+pub const ORANG_L: Color = [0.988, 0.914, 0.812];
+pub const PURPL: Color = [0.769, 0.522, 0.878];
+pub const PURPL_L: Color = [0.961, 0.839, 0.961];
 
-// CB dark red: rgb(226, 26, 27)
-pub const X_PRIMARY: Color = [0.886, 0.102, 0.106];
-// CB dark blue: rgb(30, 119, 179)
-pub const Y_PRIMARY: Color = [0.118, 0.467, 0.702];
-// adapted CB yellow:
-pub const Z_PRIMARY: Color = [1.000, 1.000, 0.600];
-
-// CB light red: rgb(250, 153, 153)
-pub const X_SECONDARY: Color = [0.980, 0.600, 0.600];
-// CB light blue: rgb(166, 205, 226)
-pub const Y_SECONDARY: Color = [0.651, 0.804, 0.886];
-// adapted CB yellow
-pub const Z_SECONDARY: Color = [1.000, 1.000, 0.800];
-
-// others
-// green
-pub const YZ_PRIMARY: Color = [0.686, 0.941, 0.459];
-// orange
-pub const XZ_PRIMARY: Color = [0.969, 0.824, 0.431];
-// purple
-pub const XY_PRIMARY: Color = [0.769, 0.522, 0.878];
-
-// others
-// green lighter
-pub const YZ_SECONDARY: Color = [0.894, 0.980, 0.820];
-// orange lighter
-pub const XZ_SECONDARY: Color = [0.988, 0.914, 0.812];
-// purple lighter
-pub const XY_SECONDARY: Color = [0.961, 0.839, 0.961];
-
-// Magma: https://github.com/BIDS/colormap/blob/master/option_a.py
-pub const MAGMA: [[f64; 3]; 256] = [
+// MAGMA: https://github.com/BIDS/colormap/blob/master/option_a.py
+pub const SCALE_MAGMA: [[f64; 3]; 256] = [
     [1.46159096e-03, 4.66127766e-04, 1.38655200e-02],
     [2.25764007e-03, 1.29495431e-03, 1.83311461e-02],
     [3.27943222e-03, 2.30452991e-03, 2.37083291e-02],

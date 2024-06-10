@@ -4,7 +4,22 @@ use approx::AbsDiffEq;
 pub type Vector2D = nalgebra::SVector<f64, 2>;
 pub type Vector3D = nalgebra::SVector<f64, 3>;
 
-/// Calculates the area of a triangle given its three vertices in 3D space.
+/// Represents the orientation of three points in 3D space.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Orientation {
+    C,   // Collinear
+    CW,  // Clockwise
+    CCW, // Counterclockwise
+}
+
+/// Represents the type of intersection between line segments.
+#[derive(Debug, Clone, Copy)]
+pub enum IntersectionType {
+    Proper,
+    Endpoint,
+}
+
+/// Calculates the area of a triangle `t` in 3D space.
 /// # Arguments
 /// * `t` - A tuple of three vertices representing the triangle.
 /// # Returns
@@ -18,7 +33,7 @@ pub fn calculate_triangle_area(t: (Vector3D, Vector3D, Vector3D)) -> f64 {
     (t.1 - t.0).cross(&(t.2 - t.0)).magnitude() * 0.5
 }
 
-/// Checks if four points are coplanar.
+/// Checks if four points `a`, `b`, `c`, and `d` are coplanar.
 /// # Arguments
 /// * `a` - First point.
 /// * `b` - Second point.
@@ -35,14 +50,7 @@ pub fn are_points_coplanar(a: Vector3D, b: Vector3D, c: Vector3D, d: Vector3D) -
     (b - a).cross(&(c - a)).dot(&(d - a)) == 0.
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Orientation {
-    C,   // Collinear
-    CW,  // Clockwise
-    CCW, // Counterclockwise
-}
-
-/// Calculates the orientation of three points in 3D space.
+/// Calculates the orientation of three points `a`, `b`, `c`, with normal `n`, in 3D space.
 /// # Arguments
 /// * `a` - First point.
 /// * `b` - Second point.
@@ -52,22 +60,21 @@ pub enum Orientation {
 /// * `Orientation` - The orientation of the points.
 ///
 /// # Source
-/// This method is based on the right-hand rule for the cross product and the dot product to determine the relative orientation of the points in a plane.
-/// For more details, see [Wikipedia](https://en.wikipedia.org/wiki/Orientation_(vector_space)).
+/// This method is based on the right-hand rule for the cross product and the dot product to determine the relative orientation of the points in a plane. For more details, see [Wikipedia](https://en.wikipedia.org/wiki/Orientation_(vector_space)).
 #[must_use]
 #[inline]
 pub fn calculate_orientation(a: Vector3D, b: Vector3D, c: Vector3D, n: Vector3D) -> Orientation {
     let orientation = (b - a).cross(&(c - a)).dot(&n);
     if orientation > 0. {
-        Orientation::CW
-    } else if orientation < 0. {
         Orientation::CCW
+    } else if orientation < 0. {
+        Orientation::CW
     } else {
         Orientation::C
     }
 }
 
-/// Projects a point onto a plane.
+/// Projects point `point` onto a plane `plane` along reference `reference`.
 /// # Arguments
 /// * `point` - The point to project.
 /// * `plane` - A tuple representing the plane (two vectors).
@@ -87,12 +94,41 @@ pub fn project_point_onto_plane(
     )
 }
 
-/// Checks if a point is inside a triangle using barycentric coordinates.
+/// Checks if point `p` is inside the triangle `t` using barycentric coordinates.
 /// # Arguments
 /// * `p` - The point to check.
 /// * `t` - A tuple of three vertices representing the triangle.
 /// # Returns
 /// * `bool` - `true` if the point is inside the triangle, `false` otherwise.
+///
+/// # Source
+/// This method is based on the use of barycentric coordinates to determine if a point lies within a triangle. For more details, see [Wikipedia](https://en.wikipedia.org/wiki/Barycentric_coordinate_system).
+///
+/// # Example
+/// ```
+/// use hutspot::geom::is_point_inside_triangle;
+/// use hutspot::geom::Vector3D;
+/// use hutspot::consts::EPS;
+/// let triangle = (Vector3D::new(0., 0., 0.), Vector3D::new(1., 0., 0.), Vector3D::new(0., 1., 0.));
+/// let point = Vector3D::new(0.5, 0.5, 0.0);
+/// let epsilon_x = Vector3D::new(EPS, 0.0, 0.0);
+/// let epsilon_y = Vector3D::new(0.0, EPS, 0.0);
+/// let epsilon_z = Vector3D::new(0.0, 0.0, EPS);
+/// let tests = vec![
+///     (point, triangle, true),              // On the boundary
+///     (point + epsilon_x, triangle, false), // Outside the triangle (by epsilon)
+///     (point - epsilon_x, triangle, true),  // Inside the triangle (by epsilon)
+///     (point + epsilon_y, triangle, false), // Outside the triangle (by epsilon)
+///     (point - epsilon_y, triangle, true),  // Inside the triangle (by epsilon)
+///     (point + epsilon_z, triangle, false), // Outside the triangle (by epsilon in z axis)
+///     (point - epsilon_z, triangle, false), // Outside the triangle (by epsilon in z axis)
+/// ];
+///
+/// for (point, triangle, expected) in tests {
+///     let inside = is_point_inside_triangle(point, triangle);
+///     assert_eq!(inside, expected, "inside_triangle({point:?}, {triangle:?}) = {inside:?}, but should be: {expected:?}");
+/// }
+/// ```
 #[must_use]
 #[inline]
 pub fn is_point_inside_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> bool {
@@ -113,6 +149,25 @@ pub fn is_point_inside_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) 
 /// * `c` - The second boundary value.
 /// # Returns
 /// * `bool` - `true` if `a` lies within the specified ranges, `false` otherwise.
+///
+/// # Example
+/// ```
+/// use hutspot::geom::is_within_inclusive_range;
+/// let tests = vec![
+///     (0.5, 0.0, 1.0, true),  // Inside the range
+///     (0.0, 0.0, 1.0, true),  // At the lower boundary
+///     (1.0, 0.0, 1.0, true),  // At the upper boundary
+///     (0.0, 1.0, 0.0, true),  // Inside the range (reversed)
+///     (1.0, 1.0, 0.0, true),  // Inside the range (reversed)
+///     (0.0, 1.0, 0.0, true),  // At the lower boundary (reversed)
+///     (1.0, 0.0, 1.0, true),  // At the upper boundary (reversed)
+///     (0.0, 0.0, 0.0, true),  // At the same point
+/// ];
+/// for (a, b, c, expected) in tests {
+///     let result = is_within_inclusive_range(a, b, c);
+///     assert_eq!(result, expected, "is_within_inclusive_range({a}, {b}, {c}) = {result}, but should be: {expected}");
+/// }
+/// ```
 #[must_use]
 #[inline]
 pub fn is_within_inclusive_range(a: f64, b: f64, c: f64) -> bool {
@@ -123,14 +178,7 @@ pub fn is_within_inclusive_range(a: f64, b: f64, c: f64) -> bool {
     }
 }
 
-/// Represents the type of intersection between lines.
-#[derive(Debug, Clone, Copy)]
-pub enum IntersectionType {
-    Proper,
-    Endpoint,
-}
-
-/// Calculates the intersection of two line segments in 2D space.
+/// Calculates the intersection of two line segments (`p_u`, `p_v`) and (`q_u`, `q_v`) in 2D space.
 /// # Arguments
 /// * `p_u` - First point of the first line segment.
 /// * `p_v` - Second point of the first line segment.
@@ -138,14 +186,59 @@ pub enum IntersectionType {
 /// * `q_v` - Second point of the second line segment.
 /// # Returns
 /// * `Option<Intersection2D>` - The intersection point and type, or `None` if no intersection.
-type Intersection2D = (Vector2D, IntersectionType);
+///
+/// # Source
+/// This method uses the parametric form of the line equation to calculate the intersection point of two line segments in 2D space. For more details, see [Wikipedia](https://en.wikipedia.org/wiki/Intersection_(geometry)#Two_line_segments).
+///
+/// # Example
+/// ```
+/// use hutspot::geom::calculate_2d_lineseg_intersection;
+/// use hutspot::geom::Vector2D;
+/// use hutspot::geom::IntersectionType::{Endpoint, Proper};
+/// use hutspot::consts::EPS;
+/// use approx::AbsDiffEq;
+/// let p1 = Vector2D::new(0., 0.);
+/// let p2 = Vector2D::new(1., 1.);
+/// let mid = Vector2D::new(0.5, 0.5);
+/// let p3 = Vector2D::new(1., 0.);
+/// let p4 = Vector2D::new(0., 1.);
+/// let epsilon_x = Vector2D::new(EPS, 0.0);
+/// let epsilon_y = Vector2D::new(0.0, EPS);
+/// let tests = vec![
+///     (p1, p2, p3, p4, Some((mid, Proper))),
+///     (p2, p1, p4, p3, Some((mid, Proper))),
+///     (p1, p3, p2, p4, None),
+///     (p3, p1, p4, p2, None),
+///     (p1, p3, p2, p3, Some((p3, Endpoint))),
+///     (p1, p3, p2, p3 + epsilon_y, None),
+///     (p1, p3, p2, p3 - epsilon_y, Some((p3, Endpoint))),
+///     (p1, p3, p2, p3 + epsilon_x, None),
+///     (p1, p3, p2, p3 - epsilon_x, Some((p3 - epsilon_x, Proper))),
+///     (p1, p3 + epsilon_y, p2, p3, Some((p3 + epsilon_y, Proper))),
+///     (p1, p3 - epsilon_y, p2, p3, None),
+///     (p1, p3 + epsilon_x, p2, p3, Some((p3, Endpoint))),
+///     (p1, p3 - epsilon_x, p2, p3, None),
+/// ];
+///
+/// for (a, b, c, d, expected) in tests {
+///     let intersection = calculate_2d_lineseg_intersection(a, b, c, d);
+///     assert!(
+///         match (intersection, expected) {
+///             (Some((a, _)), Some((b, _))) => a.abs_diff_eq(&b, EPS),
+///             (None, None) => true,
+///             _ => false,
+///         },
+///         "intersection({a:?}, {b:?}, {c:?}, {d:?}) = {intersection:?}, but should be: {expected:?}"
+///     );
+/// }
+/// ```
 #[must_use]
 pub fn calculate_2d_lineseg_intersection(
     p_u: Vector2D,
     p_v: Vector2D,
     q_u: Vector2D,
     q_v: Vector2D,
-) -> Option<Intersection2D> {
+) -> Option<(Vector2D, IntersectionType)> {
     let (x1, x2, x3, x4, y1, y2, y3, y4) = (p_u.x, p_v.x, q_u.x, q_v.x, p_u.y, p_v.y, q_u.y, q_v.y);
 
     let t_numerator = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4);
@@ -183,7 +276,7 @@ pub fn calculate_2d_lineseg_intersection(
     }
 }
 
-/// Calculates the intersection of two line segments in 3D space.
+/// Calculates the intersection of two line segments (`p_u`, `p_v`) and (`q_u`, `q_v`) in 3D space.
 /// # Arguments
 /// * `p_u` - First point of the first line segment.
 /// * `p_v` - Second point of the first line segment.
@@ -191,14 +284,66 @@ pub fn calculate_2d_lineseg_intersection(
 /// * `q_v` - Second point of the second line segment.
 /// # Returns
 /// * `Option<Intersection3D>` - The intersection point and type, or `None` if no intersection.
-type Intersection3D = (Vector3D, IntersectionType);
+///
+/// # Example
+/// ```
+/// use hutspot::geom::calculate_3d_lineseg_intersection;
+/// use hutspot::geom::Vector3D;
+/// use hutspot::geom::IntersectionType::{Endpoint, Proper};
+/// use hutspot::consts::EPS;
+/// use approx::AbsDiffEq;
+/// let p1 = Vector3D::new(0.0, 0.0, 0.0);
+/// let p2 = Vector3D::new(1.0, 1.0, 0.0);
+/// let mid = Vector3D::new(0.5, 0.5, 0.0);
+/// let p3 = Vector3D::new(1.0, 0.0, 0.0);
+/// let p4 = Vector3D::new(0.0, 1.0, 0.0);
+/// let d1 = Vector3D::new(0.0, 0.0, 1.0);
+/// let d2 = Vector3D::new(0.0, 0.0, -1.0);
+/// let d3 = Vector3D::new(424242., 424242., 424242.0);
+/// let d4 = Vector3D::new(-424242., -424242., -424242.0);
+/// let epsilon_x = Vector3D::new(EPS, 0.0, 0.0);
+/// let epsilon_y = Vector3D::new(0.0, EPS, 0.0);
+/// let epsilon_z = Vector3D::new(0.0, 0.0, EPS);
+/// let tests = vec![
+///     (p1, p2, p3, p4, Some((mid, Proper))),
+///     (p2, p1, p4, p3, Some((mid, Proper))),
+///     (p1 + d1, p2 + d1, p3 + d1, p4 + d1, Some((mid + d1, Proper))),
+///     (p1 + d2, p2 + d2, p3 + d2, p4 + d2, Some((mid + d2, Proper))),
+///     (p1 + d3, p2 + d3, p3 + d3, p4 + d3, Some((mid + d3, Proper))),
+///     (p1 + d4, p2 + d4, p3 + d4, p4 + d4, Some((mid + d4, Proper))),
+///     (p1, p3, p2, p4, None),
+///     (p1, p3, p2, p3 - epsilon_y, Some((p3, Endpoint))),
+///     (p1, p3, p2, p3 + epsilon_x, None),
+///     (p1, p3, p2, p3 - epsilon_x, Some((p3 - epsilon_x, Proper))),
+///     (p1, p3 + epsilon_y, p2, p3, Some((p3 + epsilon_y, Proper))),
+///     (p1, p3 - epsilon_y, p2, p3, None),
+///     (p1, p3 + epsilon_x, p2, p3, Some((p3, Endpoint))),
+///     (p1, p3 - epsilon_x, p2, p3, None),
+///     (p1, p3 + epsilon_z, p2, p3, None),
+///     (p1, p3 - epsilon_z, p2, p3, None),
+///     (p1, p3, p2, p3 + epsilon_z, None),
+///     (p1, p3, p2, p3 - epsilon_z, None),
+/// ];
+///
+/// for (a, b, c, d, expected) in tests {
+///     let intersection = calculate_3d_lineseg_intersection(a, b, c, d);
+///     assert!(
+///         match (intersection, expected) {
+///             (Some((a, _)), Some((b, _))) => a.abs_diff_eq(&b, EPS),
+///             (None, None) => true,
+///             _ => false,
+///         },
+///         "intersection({a:?}, {b:?}, {c:?}, {d:?}) = {intersection:?}, but should be: {expected:?}"
+///     );
+/// }
+/// ```
 #[must_use]
 pub fn calculate_3d_lineseg_intersection(
     p_u: Vector3D,
     p_v: Vector3D,
     q_u: Vector3D,
     q_v: Vector3D,
-) -> Option<Intersection3D> {
+) -> Option<(Vector3D, IntersectionType)> {
     if !are_points_coplanar(p_u, p_v, q_u, q_v) {
         return None;
     }

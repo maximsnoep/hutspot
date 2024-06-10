@@ -1,9 +1,68 @@
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-// Find the shortest path from element `a` to `b` using Dijkstra's algorithm.
-// Neighborhood of a vertex is defined by `neighbor_function`, and the weight a pair elements is defined by `weight_function
+//
+// 1 -> 2 <- 4 -> 6
+//  \   |    ^
+//   \  v    |
+//    > 3 -> 5
+//
+
+/// Finds the shortest path from element `a` to element `b` using Dijkstra's algorithm.
+///
+/// # Arguments
+/// * `a` - The starting element.
+/// * `b` - The target element.
+/// * `neighbor_function` - A function that returns the neighbors of a given element.
+/// * `weight_function` - A function that returns the weight of the edge between two elements.
+/// * `cache` - A mutable reference to a cache for storing the neighbors and weights for each element.
+///
+/// # Returns
+/// * `Option<(Vec<T>, OrderedFloat<f32>)>` - An optional tuple containing the shortest path as a vector of elements
+///    and the total weight of the path as an `OrderedFloat<f32>`. Returns `None` if no path is found.
+///
+/// # Example
+/// ```
+/// use hutspot::graph::find_shortest_path;
+/// use ordered_float::OrderedFloat;
+/// use std::collections::HashMap;
+///
+/// let neighbor_function = |node: u32| -> Vec<u32> {
+///     match node {
+///         1 => vec![2, 3],
+///         2 => vec![3],
+///         3 => vec![5],
+///         4 => vec![2, 6],
+///         5 => vec![4],
+///         6 => vec![],
+///         _ => vec![],
+///     }
+/// };
+///
+/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f32> {
+///     match (a, b) {
+///         (1, 2) => 4.0.into(),
+///         (1, 3) => 2.0.into(),
+///         (2, 3) => 5.0.into(),
+///         (3, 5) => 3.0.into(),
+///         (4, 2) => 10.0.into(),
+///         (4, 6) => 11.0.into(),
+///         (5, 4) => 4.0.into(),
+///         _ => OrderedFloat(f32::INFINITY),
+///     }
+/// };
+///
+/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f32>)>> = HashMap::new();
+/// let result = find_shortest_path(1, 6, neighbor_function, weight_function, &mut cache);
+/// assert!(result.is_some());
+/// let (path, cost) = result.unwrap();
+/// assert_eq!(path, vec![1, 3, 5, 4, 6]);
+/// assert_eq!(cost, OrderedFloat(2.0 + 3.0 + 4.0 + 11.0));
+///
+/// let result = find_shortest_path(6, 1, neighbor_function, weight_function, &mut cache);
+/// assert!(result.is_none());
+/// ```
 pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
     a: T,
     b: T,
@@ -29,7 +88,59 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
     )
 }
 
-// Find the shortest cycle through element `a`, using the `find_shortest_path` function.
+/// Finds the shortest cycle through element `a` using the `find_shortest_path` function (Dijkstra's algorithm).
+///
+/// # Arguments
+/// * `a` - The starting element, which is also the element through which the cycle must pass.
+/// * `neighbor_function` - A function that returns the neighbors of a given element.
+/// * `weight_function` - A function that returns the weight of the edge between two elements.
+/// * `cache` - A mutable reference to a cache for storing the neighbors and weights for each element.
+///
+/// # Returns
+/// * `Option<(Vec<T>, OrderedFloat<f32>)>` - An optional tuple containing the shortest cycle as a vector of elements
+///    and the total weight of the cycle as an `OrderedFloat<f32>`. Returns `None` if no cycle is found.
+///
+/// # Example
+/// ```
+/// use hutspot::graph::find_shortest_cycle;
+/// use ordered_float::OrderedFloat;
+/// use std::collections::HashMap;
+///
+/// let neighbor_function = |node: u32| -> Vec<u32> {
+///     match node {
+///         1 => vec![2, 3],
+///         2 => vec![3],
+///         3 => vec![5],
+///         4 => vec![2, 6],
+///         5 => vec![4],
+///         6 => vec![],
+///         _ => vec![],
+///     }
+/// };
+///
+/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f32> {
+///     match (a, b) {
+///         (1, 2) => 4.0.into(),
+///         (1, 3) => 2.0.into(),
+///         (2, 3) => 5.0.into(),
+///         (3, 5) => 3.0.into(),
+///         (4, 2) => 10.0.into(),
+///         (4, 6) => 11.0.into(),
+///         (5, 4) => 4.0.into(),
+///         _ => OrderedFloat(f32::INFINITY),
+///     }
+/// };
+///
+/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f32>)>> = HashMap::new();
+/// let result = find_shortest_cycle(1, neighbor_function, weight_function, &mut cache);
+/// assert!(result.is_none());
+///
+/// let result = find_shortest_cycle(3, neighbor_function, weight_function, &mut cache);
+/// assert!(result.is_some());
+/// let (path, cost) = result.unwrap();
+/// assert_eq!(path, vec![3, 5, 4, 2, 3]);
+/// assert_eq!(cost, OrderedFloat(3.0 + 4.0 + 10.0 + 5.0));
+/// ```
 pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
     a: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
@@ -43,5 +154,129 @@ pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone
         })
         .sorted_by(|(_, cost1), (_, cost2)| cost1.cmp(cost2))
         .next()
-        .map(|(path, score)| ([vec![a], path].concat(), score))
+        .map(|(path, score)| {
+            (
+                [vec![a], path.clone()].concat(),
+                score + weight_function(a, *path.first().unwrap()),
+            )
+        })
+}
+
+/// Finds the connected components of a graph.
+///
+/// # Example
+/// ```
+/// use hutspot::graph::find_ccs;
+/// use std::collections::HashSet;
+/// let neighbor_function_undirected = |node: u32| -> Vec<u32> {
+///     match node {
+///         1 => vec![2, 3],
+///         2 => vec![1, 3, 4],
+///         3 => vec![1, 2, 5],
+///         4 => vec![2, 5, 6],
+///         5 => vec![3, 4],
+///         6 => vec![5],
+///         _ => vec![],
+///     }
+/// };
+///
+/// let ccs = find_ccs(&vec![1, 2, 3, 4, 5, 6, 7], neighbor_function_undirected);
+/// assert_eq!(ccs[0], HashSet::from([1, 2, 3, 4, 5, 6]));
+/// assert_eq!(ccs[1], HashSet::from([7]));
+/// ```
+///
+pub fn find_ccs<T>(nodes: &[T], neighbor_function: impl Fn(T) -> Vec<T>) -> Vec<HashSet<T>>
+where
+    T: Eq + std::hash::Hash + Clone + Copy,
+{
+    let mut pool = nodes.to_vec();
+    let mut ccs = vec![];
+    while let Some(node) = pool.pop() {
+        let cc = find_cc(node.clone(), &neighbor_function);
+        pool.retain(|x| !cc.contains(x));
+        ccs.push(cc);
+    }
+    ccs.into_iter()
+        .sorted_by(|a, b| b.len().cmp(&a.len()))
+        .collect()
+}
+
+/// Finds the connected component of a graph that contains a specific node (or reachability from this specific node).
+///
+/// # Example
+/// ```
+/// use hutspot::graph::find_cc;
+/// use std::collections::HashSet;
+/// let neighbor_function = |node: u32| -> Vec<u32> {
+///     match node {
+///         1 => vec![2, 3],
+///         2 => vec![3],
+///         3 => vec![5],
+///         4 => vec![2, 6],
+///         5 => vec![4],
+///         6 => vec![],
+///         _ => vec![],
+///     }
+/// };
+///
+/// let cc = find_cc(1, neighbor_function);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(2, neighbor_function);
+/// assert_eq!(cc, HashSet::from([2, 3, 5, 4, 6]));
+///
+/// let cc = find_cc(3, neighbor_function);
+/// assert_eq!(cc, HashSet::from([2, 3, 5, 4, 6]));
+///
+/// let cc = find_cc(4, neighbor_function);
+/// assert_eq!(cc, HashSet::from([2, 3, 5, 4, 6]));
+///
+/// let cc = find_cc(5, neighbor_function);
+/// assert_eq!(cc, HashSet::from([2, 3, 5, 4, 6]));
+///
+/// let cc = find_cc(6, neighbor_function);
+/// assert_eq!(cc, HashSet::from([6]));
+///
+/// let cc = find_cc(7, neighbor_function);
+/// assert_eq!(cc, HashSet::from([7]));
+///
+/// let neighbor_function_undirected = |node: u32| -> Vec<u32> {
+///     match node {
+///         1 => vec![2, 3],
+///         2 => vec![1, 3, 4],
+///         3 => vec![1, 2, 5],
+///         4 => vec![2, 5, 6],
+///         5 => vec![3, 4],
+///         6 => vec![5],
+///         _ => vec![],
+///     }
+/// };
+///
+/// let cc = find_cc(1, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(2, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(3, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(4, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(5, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(6, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([1, 2, 3, 4, 5, 6]));
+///
+/// let cc = find_cc(7, neighbor_function_undirected);
+/// assert_eq!(cc, HashSet::from([7]));
+///
+/// ```
+pub fn find_cc<T>(node: T, neighbor_function: impl Fn(T) -> Vec<T>) -> HashSet<T>
+where
+    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone,
+{
+    pathfinding::directed::bfs::bfs_reach(node, |x| neighbor_function(x.clone())).collect()
 }
