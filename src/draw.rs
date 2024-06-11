@@ -1,12 +1,20 @@
+use crate::geom::Vector3D;
 use glam::Vec3;
 
 // (p * s) + t = p'
 #[must_use]
-pub fn transform_coordinates<T>(translation: T, scale: f32, position: T) -> Vec3
-where
-    Vec3: From<T>,
-{
-    (Vec3::from(position) * scale) + Vec3::from(translation)
+pub fn transform_coordinates(position: Vector3D, translation: Vector3D, scale: f32) -> Vector3D {
+    position * scale as f64 + translation
+}
+
+// (p' - t) / s = p
+#[must_use]
+pub fn invert_transform_coordinates(
+    position: Vector3D,
+    translation: Vector3D,
+    scale: f32,
+) -> Vector3D {
+    (position - translation) / scale as f64
 }
 
 pub struct DrawableLine {
@@ -14,42 +22,56 @@ pub struct DrawableLine {
     pub v: Vec3,
 }
 
-pub fn draw_line(p: Vec3, q: Vec3, translation: Vec3, scale: f32) -> DrawableLine {
-    DrawableLine {
-        u: transform_coordinates(translation, scale, p),
-        v: transform_coordinates(translation, scale, q),
+impl DrawableLine {
+    pub fn new(u: Vector3D, v: Vector3D) -> Self {
+        Self {
+            u: Vec3::new(u.x as f32, u.y as f32, u.z as f32),
+            v: Vec3::new(v.x as f32, v.y as f32, v.z as f32),
+        }
     }
-}
 
-pub fn draw_vertex(
-    point: Vec3,
-    normal: Vec3,
-    translation: Vec3,
-    scale: f32,
-    length: f32,
-) -> DrawableLine {
-    let u = transform_coordinates(translation, scale, point);
-    let v = transform_coordinates(translation, scale, point + normal);
+    pub fn from_line(u: Vector3D, v: Vector3D, translation: Vector3D, scale: f32) -> Self {
+        Self::new(
+            transform_coordinates(u, translation, scale),
+            transform_coordinates(v, translation, scale),
+        )
+    }
 
-    draw_line(u, v, translation, scale)
-}
+    pub fn from_vertex(
+        p: Vector3D,
+        n: Vector3D,
+        length: f32,
+        translation: Vector3D,
+        scale: f32,
+    ) -> Self {
+        Self::from_line(p, p + n * length as f64, translation, scale)
+    }
 
-pub fn draw_arrow(u: Vec3, v: Vec3, n: Vec3, translation: Vec3, scale: f32) -> [DrawableLine; 3] {
-    let forward = v - u;
-    let backward = u - v;
+    pub fn from_arrow(
+        u: Vector3D,
+        v: Vector3D,
+        n: Vector3D,
+        length: f32,
+        translation: Vector3D,
+        scale: f32,
+    ) -> [Self; 3] {
+        let forward = (v - u) * length as f64;
 
-    let cross = forward.cross(n).normalize() * backward.length();
+        let cross = forward.cross(&n).normalize() * forward.magnitude();
 
-    // height of wing
-    const W1: f32 = 0.3;
-    // width of wing
-    const W2: f32 = 0.1;
-    let wing1 = W1 * backward + W2 * cross;
-    let wing2 = W1 * backward - W2 * cross;
+        // height of wing
+        const W1: f64 = 0.3;
+        // width of wing
+        const W2: f64 = 0.1;
 
-    [
-        draw_line(u, v, translation, scale),
-        draw_line(v, v + wing1, translation, scale),
-        draw_line(v, v + wing2, translation, scale),
-    ]
+        //wings
+        let wing1 = W1 * -forward + W2 * cross;
+        let wing2 = W1 * -forward - W2 * cross;
+
+        [
+            Self::from_line(u, u + forward, translation, scale),
+            Self::from_line(u + forward, u + forward + wing1, translation, scale),
+            Self::from_line(u + forward, u + forward + wing2, translation, scale),
+        ]
+    }
 }

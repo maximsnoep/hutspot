@@ -19,8 +19,8 @@ use std::collections::{HashMap, HashSet};
 /// * `cache` - A mutable reference to a cache for storing the neighbors and weights for each element.
 ///
 /// # Returns
-/// * `Option<(Vec<T>, OrderedFloat<f32>)>` - An optional tuple containing the shortest path as a vector of elements
-///    and the total weight of the path as an `OrderedFloat<f32>`. Returns `None` if no path is found.
+/// * `Option<(Vec<T>, OrderedFloat<f64>)>` - An optional tuple containing the shortest path as a vector of elements
+///    and the total weight of the path as an `OrderedFloat<f64>`. Returns `None` if no path is found.
 ///
 /// # Example
 /// ```
@@ -40,7 +40,7 @@ use std::collections::{HashMap, HashSet};
 ///     }
 /// };
 ///
-/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f32> {
+/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f64> {
 ///     match (a, b) {
 ///         (1, 2) => 4.0.into(),
 ///         (1, 3) => 2.0.into(),
@@ -49,11 +49,11 @@ use std::collections::{HashMap, HashSet};
 ///         (4, 2) => 10.0.into(),
 ///         (4, 6) => 11.0.into(),
 ///         (5, 4) => 4.0.into(),
-///         _ => OrderedFloat(f32::INFINITY),
+///         _ => OrderedFloat(f64::INFINITY),
 ///     }
 /// };
 ///
-/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f32>)>> = HashMap::new();
+/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f64>)>> = HashMap::new();
 /// let result = find_shortest_path(1, 6, neighbor_function, weight_function, &mut cache);
 /// assert!(result.is_some());
 /// let (path, cost) = result.unwrap();
@@ -67,9 +67,9 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
     a: T,
     b: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
-    weight_function: impl Fn(T, T) -> OrderedFloat<f32>,
-    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f32>)>>,
-) -> Option<(Vec<T>, OrderedFloat<f32>)> {
+    weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
+    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f64>)>>,
+) -> Option<(Vec<T>, OrderedFloat<f64>)> {
     pathfinding::prelude::dijkstra(
         &a,
         |&elem| {
@@ -97,8 +97,8 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 /// * `cache` - A mutable reference to a cache for storing the neighbors and weights for each element.
 ///
 /// # Returns
-/// * `Option<(Vec<T>, OrderedFloat<f32>)>` - An optional tuple containing the shortest cycle as a vector of elements
-///    and the total weight of the cycle as an `OrderedFloat<f32>`. Returns `None` if no cycle is found.
+/// * `Option<(Vec<T>, OrderedFloat<f64>)>` - An optional tuple containing the shortest cycle as a vector of elements
+///    and the total weight of the cycle as an `OrderedFloat<f64>`. Returns `None` if no cycle is found.
 ///
 /// # Example
 /// ```
@@ -118,7 +118,7 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 ///     }
 /// };
 ///
-/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f32> {
+/// let weight_function = |a: u32, b: u32| -> OrderedFloat<f64> {
 ///     match (a, b) {
 ///         (1, 2) => 4.0.into(),
 ///         (1, 3) => 2.0.into(),
@@ -127,11 +127,11 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 ///         (4, 2) => 10.0.into(),
 ///         (4, 6) => 11.0.into(),
 ///         (5, 4) => 4.0.into(),
-///         _ => OrderedFloat(f32::INFINITY),
+///         _ => OrderedFloat(f64::INFINITY),
 ///     }
 /// };
 ///
-/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f32>)>> = HashMap::new();
+/// let mut cache: HashMap<u32, Vec<(u32, OrderedFloat<f64>)>> = HashMap::new();
 /// let result = find_shortest_cycle(1, neighbor_function, weight_function, &mut cache);
 /// assert!(result.is_none());
 ///
@@ -144,9 +144,9 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
     a: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
-    weight_function: impl Fn(T, T) -> OrderedFloat<f32>,
-    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f32>)>>,
-) -> Option<(Vec<T>, OrderedFloat<f32>)> {
+    weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
+    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f64>)>>,
+) -> Option<(Vec<T>, OrderedFloat<f64>)> {
     neighbor_function(a)
         .iter()
         .filter_map(|&neighbor| {
