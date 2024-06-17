@@ -30,10 +30,16 @@ impl DrawableLine {
         }
     }
 
-    pub fn from_line(u: Vector3D, v: Vector3D, translation: Vector3D, scale: f32) -> Self {
+    pub fn from_line(
+        u: Vector3D,
+        v: Vector3D,
+        offset: Vector3D,
+        translation: Vector3D,
+        scale: f32,
+    ) -> Self {
         Self::new(
-            transform_coordinates(u, translation, scale),
-            transform_coordinates(v, translation, scale),
+            transform_coordinates(u, translation, scale) + offset,
+            transform_coordinates(v, translation, scale) + offset,
         )
     }
 
@@ -44,7 +50,13 @@ impl DrawableLine {
         translation: Vector3D,
         scale: f32,
     ) -> Self {
-        Self::from_line(p, p + n * length as f64, translation, scale)
+        Self::from_line(
+            p,
+            p + n * length as f64,
+            Vector3D::new(0., 0., 0.),
+            translation,
+            scale,
+        )
     }
 
     pub fn from_arrow(
@@ -52,6 +64,7 @@ impl DrawableLine {
         v: Vector3D,
         n: Vector3D,
         length: f32,
+        offset: Vector3D,
         translation: Vector3D,
         scale: f32,
     ) -> [Self; 3] {
@@ -69,9 +82,9 @@ impl DrawableLine {
         let wing2 = W1 * -forward - W2 * cross;
 
         [
-            Self::from_line(u, u + forward, translation, scale),
-            Self::from_line(u + forward, u + forward + wing1, translation, scale),
-            Self::from_line(u + forward, u + forward + wing2, translation, scale),
+            Self::from_line(u, u + forward, offset, translation, scale),
+            Self::from_line(u + forward, u + forward + wing1, offset, translation, scale),
+            Self::from_line(u + forward, u + forward + wing2, offset, translation, scale),
         ]
     }
 }

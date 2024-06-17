@@ -138,7 +138,7 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 /// let result = find_shortest_cycle(3, neighbor_function, weight_function, &mut cache);
 /// assert!(result.is_some());
 /// let (path, cost) = result.unwrap();
-/// assert_eq!(path, vec![3, 5, 4, 2, 3]);
+/// assert_eq!(path, vec![3, 5, 4, 2]);
 /// assert_eq!(cost, OrderedFloat(3.0 + 4.0 + 10.0 + 5.0));
 /// ```
 pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
@@ -155,8 +155,9 @@ pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone
         .sorted_by(|(_, cost1), (_, cost2)| cost1.cmp(cost2))
         .next()
         .map(|(path, score)| {
+            let (last, rest) = path.split_last().unwrap();
             (
-                [vec![a], path.clone()].concat(),
+                [&[*last], rest].concat(),
                 score + weight_function(a, *path.first().unwrap()),
             )
         })

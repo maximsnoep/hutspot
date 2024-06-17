@@ -74,6 +74,66 @@ pub fn calculate_orientation(a: Vector3D, b: Vector3D, c: Vector3D, n: Vector3D)
     }
 }
 
+/// Calculates the clockwise angle between `a->b` and `a->c` with the three points `a`, `b`, `c`, with normal `n`, in 3D space.
+/// # Arguments
+/// * `a` - First point.
+/// * `b` - Second point.
+/// * `c` - Third point.
+/// * `n` - Normal vector of the plane containing the points.
+/// # Returns
+/// * `f64` - The clockwise angle between the two vectors.
+///
+/// # Source
+/// This method uses the dot product to calculate the angle between two vectors in 3D space. For more details, see [Wikipedia](https://en.wikipedia.org/wiki/Dot_product).
+///
+/// # Example
+/// ```
+/// use hutspot::geom::calculate_clockwise_angle;
+/// use hutspot::geom::calculate_orientation;
+/// use hutspot::geom::Vector3D;
+/// let a = Vector3D::new(0., 0., 0.);
+/// let up = Vector3D::new(0., 1., 0.);
+/// let down = Vector3D::new(0., -1., 0.);
+/// let right = Vector3D::new(1., 0., 0.);
+/// let left = Vector3D::new(-1., 0., 0.);
+/// let n = Vector3D::new(0., 0., 1.);
+/// let epsilon = 1e-6;
+/// let tests = vec![
+///     (a, up, right, n, std::f64::consts::FRAC_PI_2), // 90 degrees
+///     (a, right, up, n, 3. * std::f64::consts::FRAC_PI_2),  // 270 degrees
+///     (a, down, right, n, 3. * std::f64::consts::FRAC_PI_2),  // 270 degrees
+///     (a, right, down, n, std::f64::consts::FRAC_PI_2),  // 90 degrees
+///     (a, up, left, n, 3. * std::f64::consts::FRAC_PI_2),  // 270 degrees
+///     (a, left, up, n, std::f64::consts::FRAC_PI_2),  // 90 degrees
+///     (a, down, left, n, std::f64::consts::FRAC_PI_2),  // 90 degrees
+///     (a, left, down, n, 3. * std::f64::consts::FRAC_PI_2),  // 270 degrees
+///     (a, up, up, n, 0.0),  // 0 degrees
+///     (a, right, right, n, 0.0),  // 0 degrees
+///     (a, down, down, n, 0.0),  // 0 degrees
+///     (a, left, left, n, 0.0),  // 0 degrees
+///     (a, up, down, n, std::f64::consts::PI),  // 180 degrees
+///     (a, right, left, n, std::f64::consts::PI),  // 180 degrees
+///     (a, down, up, n, std::f64::consts::PI),  // 180 degrees
+///     (a, left, right, n, std::f64::consts::PI),  // 180 degrees
+/// ];
+/// for (a, b, c, n, expected) in tests {
+///     let angle = calculate_clockwise_angle(a, b, c, n);
+///     assert!((angle - expected).abs() < epsilon, "calculate_clockwise_angle({a:?}, {b:?}, {c:?}, {n:?}) = {angle}, but should be: {expected}");
+/// }
+/// ```
+#[must_use]
+#[inline]
+pub fn calculate_clockwise_angle(a: Vector3D, b: Vector3D, c: Vector3D, n: Vector3D) -> f64 {
+    let ab = (b - a).normalize();
+    let ac = (c - a).normalize();
+    let angle = ab.angle(&ac);
+    if calculate_orientation(a, b, c, n) == Orientation::CCW {
+        2. * std::f64::consts::PI - angle
+    } else {
+        angle
+    }
+}
+
 /// Projects point `point` onto a plane `plane` along reference `reference`.
 /// # Arguments
 /// * `point` - The point to project.
