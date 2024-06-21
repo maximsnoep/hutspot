@@ -359,3 +359,14 @@ pub fn map(value: f32, colors: &[Color]) -> Color {
         .unwrap()
         .to_owned()
 }
+
+// hsl to rgb, h in [0, 360], s in [0, 1], l in [0, 1]
+#[must_use]
+pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> Color {
+    let a = s * f32::min(l, 1.0 - l);
+    let f = |n| {
+        let k = ((n + h / 30.0) as i32 % 12) as f32;
+        l - a * f32::max(f32::min(f32::min(k - 3.0, 9.0 - k), 1.0), -1.0)
+    };
+    [f(0.0), f(8.0), f(4.0)]
+}
