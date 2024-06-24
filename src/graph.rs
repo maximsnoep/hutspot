@@ -281,3 +281,33 @@ where
 {
     pathfinding::directed::bfs::bfs_reach(node, |x| neighbor_function(x.clone())).collect()
 }
+
+// Should do this for each connected component (degree of freedom!)
+pub fn two_color<T>(
+    nodes: &[T],
+    neighbor_function: impl Fn(T) -> Vec<T>,
+) -> Option<(HashSet<T>, HashSet<T>)>
+where
+    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy,
+{
+    let mut pool = nodes.to_vec();
+    let mut color1 = HashSet::new();
+    let mut color2 = HashSet::new();
+    while let Some(node) = pool.pop() {
+        let neighbors = neighbor_function(node);
+
+        if neighbors.iter().any(|x| color1.contains(x)) {
+            if neighbors.iter().any(|x| color2.contains(x)) {
+                return None;
+            }
+            color1.extend(neighbors.clone());
+            color2.insert(node);
+        } else {
+            color2.extend(neighbors.clone());
+            color1.insert(node);
+        }
+
+        pool.retain(|x| !neighbors.contains(x));
+    }
+    Some((color1, color2))
+}
