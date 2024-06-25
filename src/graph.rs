@@ -288,26 +288,53 @@ pub fn two_color<T>(
     neighbor_function: impl Fn(T) -> Vec<T>,
 ) -> Option<(HashSet<T>, HashSet<T>)>
 where
-    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy,
+    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy + std::fmt::Debug,
 {
     let mut pool = nodes.to_vec();
     let mut color1 = HashSet::new();
     let mut color2 = HashSet::new();
-    while let Some(node) = pool.pop() {
-        let neighbors = neighbor_function(node);
 
-        if neighbors.iter().any(|x| color1.contains(x)) {
-            if neighbors.iter().any(|x| color2.contains(x)) {
-                return None;
+    while let Some(s) = pool.pop() {
+        let mut queue = vec![s];
+
+        while let Some(node) = queue.pop() {
+            pool.retain(|x| x != &node);
+            if color1.contains(&node) || color2.contains(&node) {
+                continue;
             }
-            color1.extend(neighbors.clone());
-            color2.insert(node);
-        } else {
-            color2.extend(neighbors.clone());
-            color1.insert(node);
-        }
 
-        pool.retain(|x| !neighbors.contains(x));
+            let neighbors = neighbor_function(node);
+
+            println!("{:?} {:?}", node, neighbors);
+
+            if neighbors.iter().any(|x| color1.contains(x)) {
+                if neighbors.iter().any(|x| color2.contains(x)) {
+                    println!(
+                        "{:?} {:?} (c1: {:?}, c2: {:?})",
+                        node, neighbors, color1, color2
+                    );
+                    return None;
+                }
+                println!("add {:?} to c2", node);
+                color2.insert(node);
+            } else if neighbors.iter().any(|x| color2.contains(x)) {
+                if neighbors.iter().any(|x| color1.contains(x)) {
+                    println!(
+                        "{:?} {:?} (c1: {:?}, c2: {:?})",
+                        node, neighbors, color1, color2
+                    );
+                    return None;
+                }
+                println!("add {:?} to c1", node);
+                color1.insert(node);
+            } else {
+                // Degree of freedom.
+                println!("add {:?} to c2", node);
+                color2.insert(node);
+            }
+
+            queue.extend(neighbors);
+        }
     }
     Some((color1, color2))
 }
