@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 /// Calculates the average of a list of elements.
 /// # Arguments
 /// * `list` - An iterator over elements to average.
@@ -111,4 +113,15 @@ pub fn set_intersection<T: std::cmp::PartialEq + Clone>(
     let mut intesection = collection_b.to_owned();
     intesection.retain(|edge_id| collection_a.contains(edge_id));
     intesection
+}
+
+#[must_use]
+pub fn wrap_pairs<T: Copy>(sequence: &[T]) -> Vec<(T, T)> {
+    sequence
+        .iter()
+        .cycle()
+        .copied()
+        .take(sequence.len() + 1)
+        .tuple_windows()
+        .collect()
 }

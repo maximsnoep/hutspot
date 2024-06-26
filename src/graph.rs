@@ -338,3 +338,10 @@ where
     }
     Some((color1, color2))
 }
+
+pub fn topological_sort<T>(nodes: &[T], neighbor_function: impl Fn(T) -> Vec<T>) -> Option<Vec<T>>
+where
+    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy,
+{
+    pathfinding::directed::topological_sort::topological_sort(nodes, |&x| neighbor_function(x)).ok()
+}
