@@ -143,15 +143,8 @@ pub fn calculate_clockwise_angle(a: Vector3D, b: Vector3D, c: Vector3D, n: Vecto
 /// * `Vector2D` - The projected point in 2D space.
 #[must_use]
 #[inline]
-pub fn project_point_onto_plane(
-    point: Vector3D,
-    plane: (Vector3D, Vector3D),
-    reference: Vector3D,
-) -> Vector2D {
-    Vector2D::new(
-        (point - reference).dot(&plane.0),
-        (point - reference).dot(&plane.1),
-    )
+pub fn project_point_onto_plane(point: Vector3D, plane: (Vector3D, Vector3D), reference: Vector3D) -> Vector2D {
+    Vector2D::new((point - reference).dot(&plane.0), (point - reference).dot(&plane.1))
 }
 
 /// Checks if point `p` is inside the triangle `t` using barycentric coordinates.
@@ -196,10 +189,7 @@ pub fn is_point_inside_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) 
     let s2 = calculate_triangle_area((t.1, t.2, p));
     let s3 = calculate_triangle_area((t.2, t.0, p));
     let st = calculate_triangle_area(t);
-    (s1 + s2 + s3 - st).abs() < EPS
-        && (0.0 - EPS..=st + EPS).contains(&s1)
-        && (0.0 - EPS..=st + EPS).contains(&s2)
-        && (0.0 - EPS..=st + EPS).contains(&s3)
+    (s1 + s2 + s3 - st).abs() < EPS && (0.0 - EPS..=st + EPS).contains(&s1) && (0.0 - EPS..=st + EPS).contains(&s2) && (0.0 - EPS..=st + EPS).contains(&s3)
 }
 
 /// Checks whether the element `a` lies within the range `(b..=c)` or `(c..=b)`.
@@ -293,21 +283,14 @@ pub fn is_within_inclusive_range(a: f64, b: f64, c: f64) -> bool {
 /// }
 /// ```
 #[must_use]
-pub fn calculate_2d_lineseg_intersection(
-    p_u: Vector2D,
-    p_v: Vector2D,
-    q_u: Vector2D,
-    q_v: Vector2D,
-) -> Option<(Vector2D, IntersectionType)> {
+pub fn calculate_2d_lineseg_intersection(p_u: Vector2D, p_v: Vector2D, q_u: Vector2D, q_v: Vector2D) -> Option<(Vector2D, IntersectionType)> {
     let (x1, x2, x3, x4, y1, y2, y3, y4) = (p_u.x, p_v.x, q_u.x, q_v.x, p_u.y, p_v.y, q_u.y, q_v.y);
 
     let t_numerator = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4);
     let u_numerator = -(x1 - x2) * (y1 - y3) + (y1 - y2) * (x1 - x3);
     let denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
-    if is_within_inclusive_range(t_numerator, 0.0, denominator)
-        && is_within_inclusive_range(u_numerator, 0.0, denominator)
-    {
+    if is_within_inclusive_range(t_numerator, 0.0, denominator) && is_within_inclusive_range(u_numerator, 0.0, denominator) {
         if t_numerator == 0.0 {
             return Some((p_u, IntersectionType::Endpoint));
         }
@@ -398,12 +381,7 @@ pub fn calculate_2d_lineseg_intersection(
 /// }
 /// ```
 #[must_use]
-pub fn calculate_3d_lineseg_intersection(
-    p_u: Vector3D,
-    p_v: Vector3D,
-    q_u: Vector3D,
-    q_v: Vector3D,
-) -> Option<(Vector3D, IntersectionType)> {
+pub fn calculate_3d_lineseg_intersection(p_u: Vector3D, p_v: Vector3D, q_u: Vector3D, q_v: Vector3D) -> Option<(Vector3D, IntersectionType)> {
     if !are_points_coplanar(p_u, p_v, q_u, q_v) {
         return None;
     }
