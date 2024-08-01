@@ -1,6 +1,8 @@
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
 use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
+use std::hash::Hash;
 
 //
 // 1 -> 2 <- 4 -> 6
@@ -63,7 +65,7 @@ use std::collections::{HashMap, HashSet};
 /// let result = find_shortest_path(6, 1, neighbor_function, weight_function, &mut cache);
 /// assert!(result.is_none());
 /// ```
-pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
+pub fn find_shortest_path<T: Eq + Hash + Clone + Copy>(
     a: T,
     b: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
@@ -141,7 +143,7 @@ pub fn find_shortest_path<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone 
 /// assert_eq!(path, vec![3, 5, 4, 2]);
 /// assert_eq!(cost, OrderedFloat(3.0 + 4.0 + 10.0 + 5.0));
 /// ```
-pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy>(
+pub fn find_shortest_cycle<T: Eq + Hash + Clone + Copy>(
     a: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
     weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
@@ -149,17 +151,12 @@ pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone
 ) -> Option<(Vec<T>, OrderedFloat<f64>)> {
     neighbor_function(a)
         .iter()
-        .filter_map(|&neighbor| {
-            find_shortest_path(neighbor, a, &neighbor_function, &weight_function, cache)
-        })
+        .filter_map(|&neighbor| find_shortest_path(neighbor, a, &neighbor_function, &weight_function, cache))
         .sorted_by(|(_, cost1), (_, cost2)| cost1.cmp(cost2))
         .next()
         .map(|(path, score)| {
             let (last, rest) = path.split_last().unwrap();
-            (
-                [&[*last], rest].concat(),
-                score + weight_function(a, *path.first().unwrap()),
-            )
+            ([&[*last], rest].concat(), score + weight_function(a, *path.first().unwrap()))
         })
 }
 
@@ -188,18 +185,19 @@ pub fn find_shortest_cycle<T: std::cmp::Eq + std::hash::Hash + std::clone::Clone
 ///
 pub fn find_ccs<T>(nodes: &[T], neighbor_function: impl Fn(T) -> Vec<T>) -> Vec<HashSet<T>>
 where
-    T: Eq + std::hash::Hash + Clone + Copy,
+    T: Eq + Hash + Clone + Copy,
 {
-    let mut pool = nodes.to_vec();
+    let mut visited = HashSet::new();
     let mut ccs = vec![];
-    while let Some(node) = pool.pop() {
-        let cc = find_cc(node.clone(), &neighbor_function);
-        pool.retain(|x| !cc.contains(x));
+    for &node in nodes {
+        if visited.contains(&node) {
+            continue;
+        }
+        let cc = find_cc(node, &neighbor_function);
+        visited.extend(cc.clone());
         ccs.push(cc);
     }
-    ccs.into_iter()
-        .sorted_by(|a, b| b.len().cmp(&a.len()))
-        .collect()
+    ccs.into_iter().collect()
 }
 
 /// Finds the connected component of a graph that contains a specific node (or reachability from this specific node).
@@ -277,18 +275,15 @@ where
 /// ```
 pub fn find_cc<T>(node: T, neighbor_function: impl Fn(T) -> Vec<T>) -> HashSet<T>
 where
-    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone,
+    T: Eq + Hash + Copy,
 {
-    pathfinding::directed::bfs::bfs_reach(node, |x| neighbor_function(x.clone())).collect()
+    pathfinding::directed::bfs::bfs_reach(node, |&x| neighbor_function(x)).collect()
 }
 
 // Should do this for each connected component (degree of freedom!)
-pub fn two_color<T>(
-    nodes: &[T],
-    neighbor_function: impl Fn(T) -> Vec<T>,
-) -> Option<(HashSet<T>, HashSet<T>)>
+pub fn two_color<T>(nodes: &[T], neighbor_function: impl Fn(T) -> Vec<T>) -> Option<(HashSet<T>, HashSet<T>)>
 where
-    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy + std::fmt::Debug,
+    T: Eq + Hash + Clone + Copy + Debug,
 {
     let mut pool = nodes.to_vec();
     let mut color1 = HashSet::new();
@@ -305,31 +300,19 @@ where
 
             let neighbors = neighbor_function(node);
 
-            println!("{:?} {:?}", node, neighbors);
-
             if neighbors.iter().any(|x| color1.contains(x)) {
                 if neighbors.iter().any(|x| color2.contains(x)) {
-                    println!(
-                        "{:?} {:?} (c1: {:?}, c2: {:?})",
-                        node, neighbors, color1, color2
-                    );
                     return None;
                 }
-                println!("add {:?} to c2", node);
                 color2.insert(node);
             } else if neighbors.iter().any(|x| color2.contains(x)) {
                 if neighbors.iter().any(|x| color1.contains(x)) {
-                    println!(
-                        "{:?} {:?} (c1: {:?}, c2: {:?})",
-                        node, neighbors, color1, color2
-                    );
                     return None;
                 }
-                println!("add {:?} to c1", node);
+
                 color1.insert(node);
             } else {
                 // Degree of freedom.
-                println!("add {:?} to c2", node);
                 color2.insert(node);
             }
 
@@ -341,7 +324,7 @@ where
 
 pub fn topological_sort<T>(nodes: &[T], neighbor_function: impl Fn(T) -> Vec<T>) -> Option<Vec<T>>
 where
-    T: std::cmp::Eq + std::hash::Hash + std::clone::Clone + Copy,
+    T: Eq + Hash + Clone + Copy,
 {
     pathfinding::directed::topological_sort::topological_sort(nodes, |&x| neighbor_function(x)).ok()
 }

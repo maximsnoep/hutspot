@@ -8,9 +8,7 @@ pub struct Timer {
 impl Timer {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            start: Instant::now(),
-        }
+        Self { start: Instant::now() }
     }
 
     pub fn reset(&mut self) {
@@ -18,7 +16,7 @@ impl Timer {
     }
 
     pub fn report(&self, note: &str) {
-        println!("{:>12?}  >  {note}", self.start.elapsed());
+        println!("{:>12?}  >  {note}\n\n", self.start.elapsed());
     }
 }
 
