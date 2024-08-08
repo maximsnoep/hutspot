@@ -16,7 +16,7 @@ impl Timer {
     }
 
     pub fn report(&self, note: &str) {
-        println!("{:>12?}  >  {note}\n\n", self.start.elapsed());
+        println!("{:>12?}  >  {note}", self.start.elapsed());
     }
 }
 
