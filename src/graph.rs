@@ -70,21 +70,15 @@ pub fn find_shortest_path<T: Eq + Hash + Clone + Copy>(
     b: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
     weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
-    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f64>)>>,
 ) -> Option<(Vec<T>, OrderedFloat<f64>)> {
     pathfinding::prelude::dijkstra(
         &a,
         |&elem| {
-            if cache.contains_key(&elem) {
-                cache[&elem].clone()
-            } else {
-                let neighbors = neighbor_function(elem)
-                    .iter()
-                    .map(|&neighbor| (neighbor, weight_function(elem, neighbor)))
-                    .collect_vec();
-                cache.insert(elem, neighbors.clone());
-                neighbors
-            }
+            let neighbors = neighbor_function(elem)
+                .iter()
+                .map(|&neighbor| (neighbor, weight_function(elem, neighbor)))
+                .collect_vec();
+            neighbors
         },
         |&elem| elem == b,
     )
@@ -147,11 +141,10 @@ pub fn find_shortest_cycle<T: Eq + Hash + Clone + Copy>(
     a: T,
     neighbor_function: impl Fn(T) -> Vec<T>,
     weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
-    cache: &mut HashMap<T, Vec<(T, OrderedFloat<f64>)>>,
 ) -> Option<(Vec<T>, OrderedFloat<f64>)> {
     neighbor_function(a)
         .iter()
-        .filter_map(|&neighbor| find_shortest_path(neighbor, a, &neighbor_function, &weight_function, cache))
+        .filter_map(|&neighbor| find_shortest_path(neighbor, a, &neighbor_function, &weight_function))
         .sorted_by(|(_, cost1), (_, cost2)| cost1.cmp(cost2))
         .next()
         .map(|(path, score)| {
