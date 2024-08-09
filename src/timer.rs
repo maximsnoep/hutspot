@@ -1,3 +1,4 @@
+use log::info;
 use std::time::Instant;
 
 #[derive(Clone)]
@@ -16,7 +17,7 @@ impl Timer {
     }
 
     pub fn report(&self, note: &str) {
-        println!("{:>12?}  >  {note}", self.start.elapsed());
+        info!("{:>12?}  >  {note}", self.start.elapsed());
     }
 }
 

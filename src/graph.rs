@@ -68,9 +68,20 @@ use std::hash::Hash;
 pub fn find_shortest_path<T: Eq + Hash + Clone + Copy>(
     a: T,
     b: T,
-    neighborhood: &HashMap<T, Vec<(T, OrderedFloat<f64>)>>,
+    neighbor_function: impl Fn(T) -> Vec<T>,
+    weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
 ) -> Option<(Vec<T>, OrderedFloat<f64>)> {
-    pathfinding::prelude::dijkstra(&a, |elem| neighborhood[elem].clone(), |&elem| elem == b)
+    pathfinding::prelude::dijkstra(
+        &a,
+        |&elem| {
+            let neighbors = neighbor_function(elem)
+                .iter()
+                .map(|&neighbor| (neighbor, weight_function(elem, neighbor)))
+                .collect_vec();
+            neighbors
+        },
+        |&elem| elem == b,
+    )
 }
 
 /// Finds the shortest cycle through element `a` using the `find_shortest_path` function (Dijkstra's algorithm).
@@ -126,18 +137,19 @@ pub fn find_shortest_path<T: Eq + Hash + Clone + Copy>(
 /// assert_eq!(path, vec![3, 5, 4, 2]);
 /// assert_eq!(cost, OrderedFloat(3.0 + 4.0 + 10.0 + 5.0));
 /// ```
-pub fn find_shortest_cycle<T: Eq + Hash + Clone + Copy>(a: T, neighborhood: &HashMap<T, Vec<(T, OrderedFloat<f64>)>>) -> Option<(Vec<T>, OrderedFloat<f64>)> {
-    neighborhood[&a]
+pub fn find_shortest_cycle<T: Eq + Hash + Clone + Copy>(
+    a: T,
+    neighbor_function: impl Fn(T) -> Vec<T>,
+    weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
+) -> Option<(Vec<T>, OrderedFloat<f64>)> {
+    neighbor_function(a)
         .iter()
-        .filter_map(|&(neighbor, extra)| {
-            let shortest_path = find_shortest_path(neighbor, a, neighborhood);
-            shortest_path.map(|(path, cost)| (path, cost + extra))
-        })
+        .filter_map(|&neighbor| find_shortest_path(neighbor, a, &neighbor_function, &weight_function))
         .sorted_by(|(_, cost1), (_, cost2)| cost1.cmp(cost2))
         .next()
         .map(|(path, score)| {
             let (last, rest) = path.split_last().unwrap();
-            ([&[*last], rest].concat(), score)
+            ([&[*last], rest].concat(), score + weight_function(a, *path.first().unwrap()))
         })
 }
 
