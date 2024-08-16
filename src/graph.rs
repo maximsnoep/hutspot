@@ -84,6 +84,27 @@ pub fn find_shortest_path<T: Eq + Hash + Clone + Copy>(
     )
 }
 
+pub fn find_shortest_path_astar<T: Eq + Hash + Clone + Copy>(
+    a: T,
+    b: T,
+    neighbor_function: impl Fn(T) -> Vec<T>,
+    weight_function: impl Fn(T, T) -> OrderedFloat<f64>,
+    heuristic_function: impl Fn(T, T) -> OrderedFloat<f64>,
+) -> Option<(Vec<T>, OrderedFloat<f64>)> {
+    pathfinding::directed::astar::astar(
+        &a,
+        |&elem| {
+            let neighbors = neighbor_function(elem)
+                .iter()
+                .map(|&neighbor| (neighbor, weight_function(elem, neighbor)))
+                .collect_vec();
+            neighbors
+        },
+        |&elem| heuristic_function(elem, b),
+        |&elem| elem == b,
+    )
+}
+
 /// Finds the shortest cycle through element `a` using the `find_shortest_path` function (Dijkstra's algorithm).
 ///
 /// # Arguments

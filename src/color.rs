@@ -1,27 +1,35 @@
 pub type Color = [f32; 3];
 
 // My favorite colors. Normally I use the correspondence:
-// X -> Roodt
-// Y -> Blauw
-// Z -> Yello
-// YZ -> Green (Blauw + Yello)
-// XZ -> Orang (Roodt + Yello)
-// XY -> Purpl (Roodt + Blauw)
-pub const BLACK: Color = [0.0, 0.0, 0.0];
-pub const GRIJS: Color = [0.5, 0.5, 0.5];
-pub const WHITE: Color = [1.0, 1.0, 1.0];
-pub const ROODT: Color = [0.886, 0.102, 0.106];
-pub const ROODT_L: Color = [0.980, 0.600, 0.600];
-pub const BLAUW: Color = [0.118, 0.467, 0.702];
-pub const BLAUW_L: Color = [0.651, 0.804, 0.886];
-pub const YELLO: Color = [1.000, 1.000, 0.600];
-pub const YELLO_L: Color = [1.000, 1.000, 0.800];
-pub const GREEN: Color = [0.686, 0.941, 0.459];
-pub const GREEN_L: Color = [0.894, 0.980, 0.820];
-pub const ORANG: Color = [0.969, 0.824, 0.431];
-pub const ORANG_L: Color = [0.988, 0.914, 0.812];
-pub const PURPL: Color = [0.769, 0.522, 0.878];
-pub const PURPL_L: Color = [0.961, 0.839, 0.961];
+// X -> RED
+// Y -> BLUE
+// Z -> YELLOW
+// YZ -> GREEN (BLUE + YELLOW)
+// XZ -> ORANGE (RED + YELLOW)
+// XY -> PURPLE (RED + BLUE)
+pub const BLACK: Color = [0.145, 0.145, 0.145]; // 37 37 37
+pub const DARK_GRAY: Color = [0.18, 0.18, 0.18]; // 45 45 45
+pub const GRAY: Color = [0.25, 0.25, 0.25];
+pub const LIGHT_GRAY: Color = [0.5, 0.5, 0.5];
+pub const WHITE: Color = [1.0, 1.0, 1.0]; // 255 255 255
+
+pub const RED: Color = [0.94, 0.48, 0.46]; // #F07A75
+pub const RED_LIGHT: Color = [0.95, 0.61, 0.59]; // #F39B97
+
+pub const BLUE: Color = [0.48, 0.46, 0.94]; // #7A75F0
+pub const BLUE_LIGHT: Color = [0.61, 0.59, 0.95]; // #9B97F3
+
+pub const YELLOW: Color = [0.96, 0.97, 0.73]; // #F5F7BA
+pub const YELLOW_LIGHT: Color = [0.97, 0.98, 0.80]; // #F7F9CB
+
+pub const GREEN: Color = [0.69, 0.94, 0.46]; // #AFF075
+pub const GREEN_LIGHT: Color = [0.76, 0.95, 0.59]; // #C3F397
+
+pub const ORANGE: Color = [0.94, 0.71, 0.46]; // #F0B675
+pub const ORANG_LIGHT: Color = [0.95, 0.78, 0.59]; // #F3C897
+
+pub const PURPLE: Color = [0.71, 0.46, 0.94]; // #B675F0
+pub const PURPLE_LIGHT: Color = [0.78, 0.59, 0.95]; // #C897F3
 
 // MAGMA: https://github.com/BIDS/colormap/blob/master/option_a.py
 pub const SCALE_MAGMA: [[f64; 3]; 256] = [
