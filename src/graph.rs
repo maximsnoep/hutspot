@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::Hash;
 

@@ -8,7 +8,7 @@ pub type Color = [f32; 3];
 // XZ -> ORANGE (RED + YELLOW)
 // XY -> PURPLE (RED + BLUE)
 pub const BLACK: Color = [0.145, 0.145, 0.145]; // 37 37 37
-pub const DARK_GRAY: Color = [0.18, 0.18, 0.18]; // 45 45 45
+pub const DARK_GRAY: Color = [0.15, 0.15, 0.15]; // 45 45 45
 pub const GRAY: Color = [0.25, 0.25, 0.25];
 pub const LIGHT_GRAY: Color = [0.5, 0.5, 0.5];
 pub const WHITE: Color = [1.0, 1.0, 1.0]; // 255 255 255
@@ -32,7 +32,7 @@ pub const PURPLE: Color = [0.71, 0.46, 0.94]; // #B675F0
 pub const PURPLE_LIGHT: Color = [0.78, 0.59, 0.95]; // #C897F3
 
 // MAGMA: https://github.com/BIDS/colormap/blob/master/option_a.py
-pub const SCALE_MAGMA: [[f64; 3]; 256] = [
+pub const SCALE_MAGMA: [Color; 256] = [
     [1.46159096e-03, 4.66127766e-04, 1.38655200e-02],
     [2.25764007e-03, 1.29495431e-03, 1.83311461e-02],
     [3.27943222e-03, 2.30452991e-03, 2.37083291e-02],
