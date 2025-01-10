@@ -362,7 +362,10 @@ pub const PARULA: [Color; 64] = [
 // Map a value between 0.0 to 1.0 to the given color scale.
 #[must_use]
 pub fn map(value: f32, colors: &[Color]) -> Color {
-    colors.get((value * (colors.len() as f32)).floor() as usize).unwrap().to_owned()
+    let index = (value * (colors.len() as f32)).floor() as usize;
+    let index = f32::min(index as f32, colors.len() as f32 - 1.0) as usize;
+    let index = f32::max(index as f32, 0.0) as usize;
+    colors.get(index).unwrap().to_owned()
 }
 
 // hsl to rgb, h in [0, 360], s in [0, 1], l in [0, 1]
