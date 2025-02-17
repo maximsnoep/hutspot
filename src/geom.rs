@@ -13,7 +13,7 @@ pub enum Orientation {
 }
 
 /// Represents the type of intersection between line segments.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntersectionType {
     Proper,
     Endpoint,
@@ -287,31 +287,36 @@ pub fn calculate_2d_lineseg_intersection(p_u: Vector2D, p_v: Vector2D, q_u: Vect
     let (x1, x2, x3, x4, y1, y2, y3, y4) = (p_u.x, p_v.x, q_u.x, q_v.x, p_u.y, p_v.y, q_u.y, q_v.y);
 
     let t_numerator = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4);
-    let u_numerator = -(x1 - x2) * (y1 - y3) + (y1 - y2) * (x1 - x3);
+    let u_numerator = (x1 - x3) * (y1 - y2) - (y1 - y3) * (x1 - x2);
     let denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
+    if denominator.abs() < EPS {
+        return None;
+    }
+
     if is_within_inclusive_range(t_numerator, 0.0, denominator) && is_within_inclusive_range(u_numerator, 0.0, denominator) {
-        if t_numerator == 0.0 {
+        let t = t_numerator / denominator;
+        if t.abs() < EPS {
             return Some((p_u, IntersectionType::Endpoint));
         }
-        if t_numerator == denominator {
+        if (t - 1.0).abs() < EPS {
             return Some((p_v, IntersectionType::Endpoint));
         }
-        if u_numerator == 0.0 {
-            return Some((q_u, IntersectionType::Endpoint));
-        }
-        if u_numerator == denominator {
-            return Some((q_v, IntersectionType::Endpoint));
-        }
-
-        let t = t_numerator / denominator;
         let sx_t = t.mul_add(x2 - x1, x1);
         let sy_t = t.mul_add(y2 - y1, y1);
         let s_t = Vector2D::new(sx_t, sy_t);
+
         let u = u_numerator / denominator;
+        if u.abs() < EPS {
+            return Some((q_u, IntersectionType::Endpoint));
+        }
+        if (u - 1.0).abs() < EPS {
+            return Some((q_v, IntersectionType::Endpoint));
+        }
         let sx_u = u.mul_add(x4 - x3, x3);
         let sy_u = u.mul_add(y4 - y3, y3);
         let s_u = Vector2D::new(sx_u, sy_u);
+
         assert!(s_t.abs_diff_eq(&s_u, EPS));
         Some((s_t, IntersectionType::Proper))
     } else {
