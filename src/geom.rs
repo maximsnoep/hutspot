@@ -294,7 +294,7 @@ pub fn calculate_2d_lineseg_intersection(p_u: Vector2D, p_v: Vector2D, q_u: Vect
         return None;
     }
 
-    if is_within_inclusive_range(t_numerator, 0.0, denominator) && is_within_inclusive_range(u_numerator, 0.0, denominator) {
+    if is_within_inclusive_range(t_numerator, 0.0, denominator) {
         let t = t_numerator / denominator;
         if t.abs() < EPS {
             return Some((p_u, IntersectionType::Endpoint));
@@ -306,6 +306,8 @@ pub fn calculate_2d_lineseg_intersection(p_u: Vector2D, p_v: Vector2D, q_u: Vect
         let sy_t = t.mul_add(y2 - y1, y1);
         let s_t = Vector2D::new(sx_t, sy_t);
 
+        Some((s_t, IntersectionType::Proper))
+    } else if is_within_inclusive_range(u_numerator, 0.0, denominator) {
         let u = u_numerator / denominator;
         if u.abs() < EPS {
             return Some((q_u, IntersectionType::Endpoint));
@@ -317,8 +319,7 @@ pub fn calculate_2d_lineseg_intersection(p_u: Vector2D, p_v: Vector2D, q_u: Vect
         let sy_u = u.mul_add(y4 - y3, y3);
         let s_u = Vector2D::new(sx_u, sy_u);
 
-        assert!(s_t.abs_diff_eq(&s_u, EPS));
-        Some((s_t, IntersectionType::Proper))
+        Some((s_u, IntersectionType::Proper))
     } else {
         None
     }
