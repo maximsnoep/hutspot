@@ -3,18 +3,14 @@ use glam::Vec3;
 
 // (p * s) + t = p'
 #[must_use]
-pub fn transform_coordinates(position: Vector3D, translation: Vector3D, scale: f32) -> Vector3D {
-    position * scale as f64 + translation
+pub fn transform_coordinates(position: Vector3D, translation: Vector3D, scale: f64) -> Vector3D {
+    position * scale + translation
 }
 
 // (p' - t) / s = p
 #[must_use]
-pub fn invert_transform_coordinates(
-    position: Vector3D,
-    translation: Vector3D,
-    scale: f32,
-) -> Vector3D {
-    (position - translation) / scale as f64
+pub fn invert_transform_coordinates(position: Vector3D, translation: Vector3D, scale: f64) -> Vector3D {
+    (position - translation) / scale
 }
 
 pub struct DrawableLine {
@@ -30,44 +26,18 @@ impl DrawableLine {
         }
     }
 
-    pub fn from_line(
-        u: Vector3D,
-        v: Vector3D,
-        offset: Vector3D,
-        translation: Vector3D,
-        scale: f32,
-    ) -> Self {
+    pub fn from_line(u: Vector3D, v: Vector3D, offset: Vector3D, translation: Vector3D, scale: f64) -> Self {
         Self::new(
             transform_coordinates(u, translation, scale) + offset,
             transform_coordinates(v, translation, scale) + offset,
         )
     }
 
-    pub fn from_vertex(
-        p: Vector3D,
-        n: Vector3D,
-        length: f32,
-        translation: Vector3D,
-        scale: f32,
-    ) -> Self {
-        Self::from_line(
-            p,
-            p + n * length as f64,
-            Vector3D::new(0., 0., 0.),
-            translation,
-            scale,
-        )
+    pub fn from_vertex(p: Vector3D, n: Vector3D, length: f32, translation: Vector3D, scale: f64) -> Self {
+        Self::from_line(p, p + n * length as f64, Vector3D::new(0., 0., 0.), translation, scale)
     }
 
-    pub fn from_arrow(
-        u: Vector3D,
-        v: Vector3D,
-        n: Vector3D,
-        length: f32,
-        offset: Vector3D,
-        translation: Vector3D,
-        scale: f32,
-    ) -> [Self; 3] {
+    pub fn from_arrow(u: Vector3D, v: Vector3D, n: Vector3D, length: f32, offset: Vector3D, translation: Vector3D, scale: f64) -> [Self; 3] {
         let forward = (v - u) * length as f64;
 
         let cross = forward.cross(&n).normalize() * forward.magnitude();
