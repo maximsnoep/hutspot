@@ -144,7 +144,11 @@ pub fn calculate_barycentric_coordinates(p: Vector3D, t: (Vector3D, Vector3D, Ve
     let s2 = calculate_triangle_area((t.1, t.2, p));
     let s3 = calculate_triangle_area((t.2, t.0, p));
     let st = calculate_triangle_area(t);
-    (s1 / st, s2 / st, s3 / st)
+    if st == 0. {
+        return (1., 0., 0.);
+    } else {
+        (s2 / st, s3 / st, s1 / st)
+    }
 }
 
 // Inverse barycentric coordinates: given barycentric coordinates (u, v, w), find the point p in triangle t.
