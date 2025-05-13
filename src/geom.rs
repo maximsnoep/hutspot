@@ -136,6 +136,27 @@ pub fn distance_to_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> f
     (s1 + s2 + s3 - st).abs()
 }
 
+// Calculate the barycentric coordinates of point `p` with respect to triangle `t`.
+#[must_use]
+#[inline]
+pub fn calculate_barycentric_coordinates(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> (f64, f64, f64) {
+    let s1 = calculate_triangle_area((t.0, t.1, p));
+    let s2 = calculate_triangle_area((t.1, t.2, p));
+    let s3 = calculate_triangle_area((t.2, t.0, p));
+    let st = calculate_triangle_area(t);
+    (s1 / st, s2 / st, s3 / st)
+}
+
+// Inverse barycentric coordinates: given barycentric coordinates (u, v, w), find the point p in triangle t.
+#[must_use]
+#[inline]
+pub fn inverse_barycentric_coordinates(u: f64, v: f64, w: f64, t: (Vector3D, Vector3D, Vector3D)) -> Vector3D {
+    let p1 = t.0 * u;
+    let p2 = t.1 * v;
+    let p3 = t.2 * w;
+    p1 + p2 + p3
+}
+
 /// Checks whether the element `a` lies within the range `(b..=c)` or `(c..=b)`.
 /// # Arguments
 /// * `a` - The element to check.
