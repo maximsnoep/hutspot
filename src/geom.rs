@@ -118,37 +118,122 @@ pub fn project_point_onto_plane(point: Vector3D, plane: (Vector3D, Vector3D), re
 #[must_use]
 #[inline]
 pub fn is_point_inside_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> bool {
-    let s1 = calculate_triangle_area((t.0, t.1, p));
-    let s2 = calculate_triangle_area((t.1, t.2, p));
-    let s3 = calculate_triangle_area((t.2, t.0, p));
-    let st = calculate_triangle_area(t);
-    (s1 + s2 + s3 - st).abs() < EPS && (0.0 - EPS..=st + EPS).contains(&s1) && (0.0 - EPS..=st + EPS).contains(&s2) && (0.0 - EPS..=st + EPS).contains(&s3)
+    // let s1 = calculate_triangle_area((t.0, t.1, p));
+    // let s2 = calculate_triangle_area((t.1, t.2, p));
+    // let s3 = calculate_triangle_area((t.2, t.0, p));
+    // let st = calculate_triangle_area(t);
+    // (s1 + s2 + s3 - st).abs() < EPS && (0.0 - EPS..=st + EPS).contains(&s1) && (0.0 - EPS..=st + EPS).contains(&s2) && (0.0 - EPS..=st + EPS).contains(&s3)
+    let (a, b, c) = t;
+
+    let v0 = b - a;
+    let v1 = c - a;
+    let v2 = p - a;
+
+    let d00 = v0.dot(&v0);
+    let d01 = v0.dot(&v1);
+    let d11 = v1.dot(&v1);
+    let d20 = v2.dot(&v0);
+    let d21 = v2.dot(&v1);
+
+    let denom = d00 * d11 - d01 * d01;
+
+    if denom.abs() < EPS {
+        // Degenerate triangle
+        return false;
+    }
+
+    let inv_denom = 1.0 / denom;
+    let u = (d11 * d20 - d01 * d21) * inv_denom;
+    let v = (d00 * d21 - d01 * d20) * inv_denom;
+
+    u >= -EPS && v >= -EPS && (u + v) <= 1.0 + EPS
 }
 
-/// Calculates the distance of point `p` to triangle `t` using barycentric coordinates.
+/// Calculates the distance of point `p` to triangle `t`
 #[must_use]
 #[inline]
 pub fn distance_to_triangle(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> f64 {
-    let s1 = calculate_triangle_area((t.0, t.1, p));
-    let s2 = calculate_triangle_area((t.1, t.2, p));
-    let s3 = calculate_triangle_area((t.2, t.0, p));
-    let st = calculate_triangle_area(t);
-    (s1 + s2 + s3 - st).abs()
+    let (a, b, c) = t;
+
+    let ab = b - a;
+    let ac = c - a;
+    let ap = p - a;
+
+    // Normal vector of the triangle plane
+    let n = ab.cross(&ac);
+    let n_norm = n.norm();
+    let n_unit = n / n_norm;
+
+    // Distance from p to the plane
+    let dist_to_plane = ap.dot(&n_unit);
+    let proj = p - dist_to_plane * n_unit;
+
+    if n_norm != 0.0 && is_point_inside_triangle(proj, (a, b, c)) {
+        dist_to_plane.abs() // Perpendicular distance
+    } else {
+        // Closest distance to one of the triangle’s edges
+        let d1 = distance_to_segment(p, a, b);
+        let d2 = distance_to_segment(p, b, c);
+        let d3 = distance_to_segment(p, c, a);
+        d1.min(d2).min(d3)
+    }
+}
+
+fn distance_to_segment(p: Vector3D, a: Vector3D, b: Vector3D) -> f64 {
+    let ab = b - a;
+    let t = (p - a).dot(&ab) / ab.dot(&ab);
+    let t_clamped = t.clamp(0.0, 1.0);
+    let closest = a + ab * t_clamped;
+    (p - closest).norm()
 }
 
 // Calculate the barycentric coordinates of point `p` with respect to triangle `t`.
 #[must_use]
 #[inline]
 pub fn calculate_barycentric_coordinates(p: Vector3D, t: (Vector3D, Vector3D, Vector3D)) -> (f64, f64, f64) {
-    let s1 = calculate_triangle_area((t.0, t.1, p));
-    let s2 = calculate_triangle_area((t.1, t.2, p));
-    let s3 = calculate_triangle_area((t.2, t.0, p));
-    let st = calculate_triangle_area(t);
-    if st == 0. {
-        return (1., 0., 0.);
-    } else {
-        (s2 / st, s3 / st, s1 / st)
+    let (a, b, c) = t;
+    let v0 = b - a;
+    let v1 = c - a;
+    let v2 = p - a;
+
+    let d00 = v0.dot(&v0);
+    let d01 = v0.dot(&v1);
+    let d11 = v1.dot(&v1);
+    let d20 = v2.dot(&v0);
+    let d21 = v2.dot(&v1);
+
+    let denom = d00 * d11 - d01 * d01;
+
+    if denom.abs() < 1e-12 {
+        // Degenerate case: the triangle is a line or a point
+        // We'll fall back to 1D parameterization along the longest edge
+
+        // Try AB first
+        let ab = b - a;
+        let ab_len2 = ab.dot(&ab);
+        if ab_len2 > 1e-12 {
+            let t = (p - a).dot(&ab) / ab_len2;
+            return (1.0 - t, t, 0.0);
+        }
+
+        // Try BC
+        let bc = c - b;
+        let bc_len2 = bc.dot(&bc);
+        if bc_len2 > 1e-12 {
+            let t = (p - b).dot(&bc) / bc_len2;
+            return (0.0, 1.0 - t, t);
+        }
+
+        // All points are the same
+        return (1.0, 0.0, 0.0);
     }
+
+    let inv_denom = 1.0 / denom;
+    let v = (d11 * d20 - d01 * d21) * inv_denom;
+    let w = (d00 * d21 - d01 * d20) * inv_denom;
+    let u = 1.0 - v - w;
+
+    (u, v, w)
 }
 
 // Inverse barycentric coordinates: given barycentric coordinates (u, v, w), find the point p in triangle t.
